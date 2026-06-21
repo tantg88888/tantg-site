@@ -1,3 +1,25 @@
+/* ---- Dark-mode toggle ---- */
+const themeToggle = document.getElementById('theme-toggle');
+const html = document.documentElement;
+
+function applyTheme(dark) {
+  if (dark) {
+    html.setAttribute('data-theme', 'dark');
+    themeToggle.setAttribute('aria-label', 'Toggle light mode');
+  } else {
+    html.removeAttribute('data-theme');
+    themeToggle.setAttribute('aria-label', 'Toggle dark mode');
+  }
+}
+
+applyTheme(sessionStorage.getItem('theme') === 'dark');
+
+themeToggle.addEventListener('click', () => {
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  sessionStorage.setItem('theme', isDark ? 'light' : 'dark');
+  applyTheme(!isDark);
+});
+
 /* ---- Nav toggle ---- */
 const navToggle = document.getElementById('nav-toggle');
 const navLinks  = document.getElementById('nav-links');
