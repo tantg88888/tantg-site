@@ -25,6 +25,33 @@
 }
 
 /* ================================
+   DARK MODE
+================================ */
+[data-theme="dark"] {
+  --ground:  #111110;
+  --text:    #F0EDE8;
+  --text-2:  #9A958F;
+  --accent:  #22C47A;
+  --border:  #2A2926;
+  --surface: #1C1B18;
+  --white:   #1C1B18;
+}
+
+[data-theme="dark"] .nav {
+  background: rgba(17, 17, 16, 0.88);
+}
+
+[data-theme="dark"] .nav-links {
+  background: rgba(17, 17, 16, 0.97);
+}
+
+[data-theme="dark"] .project-card,
+[data-theme="dark"] .repo-card,
+[data-theme="dark"] .contact-link {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ================================
    RESET
 ================================ */
 *, *::before, *::after {
@@ -113,6 +140,36 @@ button   { border: none; background: none; font: inherit; cursor: pointer; }
   outline:        2px solid var(--accent);
   outline-offset: 2px;
 }
+
+.theme-toggle {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  width:           34px;
+  height:          34px;
+  border-radius:   var(--radius);
+  color:           var(--text-2);
+  flex-shrink:     0;
+  transition:      background var(--dur) var(--ease),
+                   color      var(--dur) var(--ease);
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  background: var(--surface);
+  color:      var(--text);
+  outline:    none;
+}
+
+.theme-toggle:focus-visible {
+  outline:        2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.icon-sun { display: none; }
+
+[data-theme="dark"] .icon-moon { display: none; }
+[data-theme="dark"] .icon-sun  { display: block; }
 
 .nav-toggle {
   display:        none;
