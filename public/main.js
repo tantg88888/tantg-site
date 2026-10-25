@@ -1,109 +1,34 @@
-/* ---- Dark-mode toggle ---- */
-const themeToggle = document.getElementById('theme-toggle');
-const html = document.documentElement;
+// Lists public repos from the GitHub API in #repos (newest first, forks hidden).
+const USER = "tantg88888";
+const HIDE = new Set(["tantg-site", USER]);
 
-function applyTheme(dark) {
-  if (dark) {
-    html.setAttribute('data-theme', 'dark');
-    themeToggle.setAttribute('aria-label', 'Toggle light mode');
-  } else {
-    html.removeAttribute('data-theme');
-    themeToggle.setAttribute('aria-label', 'Toggle dark mode');
-  }
+document.getElementById("year").textContent = new Date().getFullYear();
+
+const list = document.getElementById("repo-list");
+
+function card(repo) {
+  const el = document.createElement("article");
+  el.className = "card repo";
+  const h = document.createElement("h3");
+  const a = document.createElement("a");
+  a.href = repo.html_url;
+  a.textContent = repo.name;
+  h.appendChild(a);
+  const p = document.createElement("p");
+  p.textContent = repo.description || "";
+  const meta = document.createElement("p");
+  meta.className = "meta";
+  meta.textContent = [repo.language, "updated " + new Date(repo.pushed_at).toLocaleDateString()].filter(Boolean).join(" · ");
+  el.append(h, p, meta);
+  return el;
 }
 
-applyTheme(sessionStorage.getItem('theme') === 'dark');
-
-themeToggle.addEventListener('click', () => {
-  const isDark = html.getAttribute('data-theme') === 'dark';
-  sessionStorage.setItem('theme', isDark ? 'light' : 'dark');
-  applyTheme(!isDark);
-});
-
-/* ---- Nav toggle ---- */
-const navToggle = document.getElementById('nav-toggle');
-const navLinks  = document.getElementById('nav-links');
-
-navToggle.addEventListener('click', () => {
-  const open = navLinks.classList.toggle('open');
-  navToggle.setAttribute('aria-expanded', String(open));
-});
-
-navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', closeNav));
-
-document.addEventListener('click', e => {
-  if (!e.target.closest('.nav')) closeNav();
-});
-
-function closeNav() {
-  navLinks.classList.remove('open');
-  navToggle.setAttribute('aria-expanded', 'false');
-}
-
-/* ---- GitHub repos ---- */
-const GITHUB_USER = 'tantg88888';
-const grid = document.getElementById('repos-grid');
-
-const LANG_COLORS = {
-  JavaScript: '#F7DF1E',
-  TypeScript: '#3178C6',
-  Python:     '#3572A5',
-  Java:       '#B07219',
-  CSS:        '#563D7C',
-  HTML:       '#E34C26',
-  Go:         '#00ADD8',
-  Rust:       '#DEA584',
-  Ruby:       '#701516',
-  PHP:        '#4F5D95',
-  'C++':      '#F34B7D',
-  C:          '#555555',
-  Shell:      '#89E051',
-  Vue:        '#41B883',
-  Svelte:     '#FF3E00',
-  Kotlin:     '#7F52FF',
-  Swift:      '#FA7343',
-};
-
-async function loadRepos() {
-  try {
-    const res = await fetch(
-      `https://api.github.com/users/${GITHUB_USER}/repos?sort=updated&per_page=12`
-    );
-    if (!res.ok) throw new Error(res.status);
-    const repos = await res.json();
-
-    if (!repos.length) {
-      grid.innerHTML = '<p class="repos-status">No public repositories yet.</p>';
-      return;
-    }
-
-    grid.innerHTML = repos.map(r => {
-      const color = r.language ? (LANG_COLORS[r.language] ?? '#999999') : null;
-      const langTag = color
-        ? `<span class="repo-lang">
-             <span class="lang-dot" style="background:${color}"></span>
-             ${r.language}
-           </span>`
-        : '';
-      return `<a class="repo-card"
-                 href="${r.html_url}"
-                 target="_blank"
-                 rel="noopener noreferrer"
-                 aria-label="View ${r.name} on GitHub">
-        <span class="repo-name">${r.name}</span>
-        <p class="repo-desc">${r.description ?? 'No description.'}</p>
-        <div class="repo-meta">
-          ${langTag}
-          <span class="repo-stars">&#9733; ${r.stargazers_count}</span>
-        </div>
-      </a>`;
-    }).join('');
-  } catch {
-    grid.innerHTML = `<p class="repos-status repos-error">
-      Could not load repositories.
-      <a href="https://github.com/${GITHUB_USER}" target="_blank" rel="noopener noreferrer">View on GitHub →</a>
-    </p>`;
-  }
-}
-
-loadRepos();
+fetch(`https://api.github.com/users/${USER}/repos?sort=pushed&per_page=30`)
+  .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+  .then((repos) => {
+    const shown = repos.filter((r) => !r.fork && !HIDE.has(r.name));
+    list.replaceChildren(...(shown.length ? shown.map(card) : [Object.assign(document.createElement("p"), { className: "muted", textContent: "No public repositories yet." })]));
+  })
+  .catch(() => {
+    list.innerHTML = `<p class="muted">See all repositories on <a href="https://github.com/${USER}">GitHub</a>.</p>`;
+  });
